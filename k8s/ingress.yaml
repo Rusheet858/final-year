@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: laravel
+  labels:
+    app.kubernetes.io/name: laravel
+spec:
+  rules:
+    - host: laravel2.meetup.bigbrain.engineer
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: laravel
+                port:
+                  number: 8080
+    - host: laravel-new.meetup.bigbrain.engineer
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: laravel
+                port:
+                  number: 8080

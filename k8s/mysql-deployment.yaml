@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-deploy
+  template:
+    metadata:
+      labels:
+        app: mysql-deploy
+    spec:
+      containers:
+        - name: mysql-deploy
+          image: mysql:8
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: mysql-secret
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "2048Mi"
+              cpu: "2000m"
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  selector:
+    app: mysql-deploy
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+spec:
+  storageClassName: fyp-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  # Base64 encoded (bGFyYXZlbA== => laravel)
+  MYSQL_DATABASE: bGFyYXZlbA==
+  MYSQL_USER: bGFyYXZlbA==
+  MYSQL_PASSWORD: bGFyYXZlbA==
+  MYSQL_ROOT_PASSWORD: bGFyYXZlbA==
